@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Ewan Keith" />
+
+<meta name="date" content="2017-09-21" />
+
+<title>Model fitting and capture of relevant data</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Model fitting and capture of relevant data</h1>
+<h4 class="author"><em>Ewan Keith</em></h4>
+<h4 class="date"><em>2017-09-21</em></h4>
+
+
+
+<p>Given the large raw size of fitted rstan models (often &gt; 1GB for even relatively simple models) and the need to fit many models in a simulation study, three broad steps are likely to be required:</p>
+<ol style="list-style-type: decimal">
+<li>Fit the Stan model to a single relevant dataset.</li>
+<li>Extract the relevant summary information from the fitted Stan model and store.</li>
+<li>Repeat the above for all simulated datasets.</li>
+</ol>
+<p>Using the <code>rstansim</code> package, the above steps are all handled using the <code>fit_models()</code> function.</p>
+<div id="the-fit_models-function" class="section level2">
+<h2>The fit_models() function</h2>
+<p>The <code>fit_models()</code> function takes a list of datasets (stored as .RDS files; see <a href="https://ewan-keith.github.io/rstansim/articles/simulating_data.html">vignette on data simulation</a>), a single stan model to fit to these datasets. It then fits the model to each dataset, recording requested/relevant data for each, and returning an S3 object of class <code>stansim_simulation</code> that holds all outcome data.</p>
+</div>
+<div id="arguments" class="section level2">
+<h2>Arguments</h2>
+<div id="sim_name" class="section level3">
+<h3>sim_name</h3>
+<p>This is the name for your simulation object. Since <code>fit_models()</code> fits a single model to multiple datasets it most likely makes sense to name your object after the model you are fitting. Why not just name your output object after the model? Because at a later stage you may wish to combine multiple single simulations into a <a href="stansim_collection()"><code>stansim_collection</code></a> object to help manage and keep results located together. At this stage the only identifier for the results of each outcome will be this provided name. If you don’t set it to start with you can still rest it later using the <code>rename()</code> function.</p>
+</div>
+<div id="data-for-modelling" class="section level3">
+<h3>Data for modelling</h3>
+<p>There is only one argument for <code>fit_models()</code> that <em>must</em> be specified (e.g. has no default) and that is the <code>sim_data</code> argument. This should be a vector of the location names of the simulation datafiles to be modelled, or the S3 <code>stansim_data</code> object returned by a call to <code>simulate_data()</code>. If a <code>stansim_data</code> object is provided this will automatically direct the functin to the simulated data, so long as both the <code>fit_models()</code> and <code>simulate_data()</code> calls are made from the same working directory.</p>
+<p>If data was not simulated using <code>rstansim</code> then the easiest way to get these names is to store all simulated data in a single directory, the full locations of each file (relative to the working directory) can then be found by running:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dir</span>(<span class="st">'directory containing data'</span>, <span class="dt">full.names =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<p>Each dataset must be a .RDS file that, when loaded, returns a list containing the named data elements and their values. The naming of these must follow that used by the <code>sampling()</code> function in the <code>rstan</code> package.</p>
+</div>
+<div id="stan-arguments" class="section level3">
+<h3>Stan arguments</h3>
+<p>The other argument that you will likely want to specify directly is <code>stan_args</code> which takes a list containing the arguments that control the MCMC sampling carried out by Stan. In practice, four of these paramaters are likely to be of most interest:</p>
+<ul>
+<li><code>chains</code>: Controlling how many chains to run per model.</li>
+<li><code>iter</code>: Controlling the number of samples to draw from each chain.</li>
+<li><code>warmup</code>: The number of samples to mark as warmup.</li>
+<li><code>thin</code>: The thinning period used for saving samples.</li>
+</ul>
+<p>The names of the <code>stan_arg</code> elements must match exactly or else will not be recognised. The example below shows a correct specification:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">use_stan_args &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;chains&quot;</span> =<span class="st"> </span><span class="dv">4</span>, <span class="st">&quot;iter&quot;</span> =<span class="st"> </span><span class="dv">2000</span>, <span class="st">&quot;warmup&quot;</span> =<span class="st"> </span><span class="dv">1000</span>, <span class="st">&quot;thin&quot;</span> =<span class="st"> </span><span class="dv">1</span>)</code></pre></div>
+<p>Any other parameters used by the <code>rstan</code> <code>sampling()</code> function can also be provided, with the exceptions of <code>data</code>, <code>pars</code>, <code>sample_file</code>, and <code>diagnostic_file</code> as the first two are overruled by <code>fit_models()</code> arguments, and the last two raise the risk of write conflicts when fitting models in parallel</p>
+</div>
+<div id="other-arguments" class="section level3">
+<h3>Other arguments</h3>
+<p>With valid <code>sim_data</code> and <code>stan_arg</code> arguments the other <code>fit_models()</code> arguments all have defaults that should return reasonable results. However, you are likely to want to tweak some other arguments to match your unique case. These arguments are:</p>
+<ul>
+<li><code>calc_loo</code>: If <code>TRUE</code> then <a href="https://CRAN.R-project.org/package=loo">LOO fit statistics</a> are calculated for all models and stored within the returned data.</li>
+<li><code>use_cores</code>: The number of parallel cores to use. Each model is assigned a single core, rather than each chain.</li>
+<li><code>parameters</code>: The names of the parameters you wish to store results for, defaults to all. You cannot select subsets of the parameter (e.g. must request theta rather than theta[1]).</li>
+<li><code>probs</code>: Quantiles to record for each parameter, defaults to <code>c(.025, .25, .5, .75, .975)</code>.</li>
+<li><code>estimates</code>: A selection from <code>c(&quot;mean&quot;, &quot;se_mean&quot;, &quot;sd&quot;, &quot;n_eff&quot;, &quot;Rhat&quot;)</code> which specifies which of these estimates should be stored for each parameter. By default all are stored.</li>
+</ul>
+<p>Other arguments exist but these a less likely to be of interest. See the documentation for <code>fit_models()</code> for more information.</p>
+</div>
+</div>
+<div id="refitting-specific-models" class="section level2">
+<h2>Refitting specific models</h2>
+<p>In some cases you might want to only refit a small number of models within a simulation (e.g. because of randomly set initial values it’s possible that a small set of models failed to converge whilst most converged without issues). In this case the <code>refit()</code> function can be used to solve the problem. Calling <code>refit()</code> on a simulation result object will return an object of the same class, with the specified datasets refit, but the others unchanged. Any models refitted in this manner will overwrite the previous data and will be marked within the object as refitted.</p>
+<p>Given the computational resources required to run some simulations this function allows for minor adjustments without having to rerun the entire model fit stage. However, it should be noted that this complicates reproducability and must not be used as an alternative to well defined stan models with good convegence behaviour.</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+---
+title: "Model fitting and capture of relevant data"
+author: "Ewan Keith"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Model Fitting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r,echo=FALSE,results='asis'}
+knitr::opts_chunk$set(collapse = T)
+```
+
+Given the large raw size of fitted rstan models (often > 1GB for even relatively simple models) and the need to fit many models in a simulation study, three broad steps are likely to be required:
+
+1. Fit the Stan model to a single relevant dataset.
+2. Extract the relevant summary information from the fitted Stan model and store.
+3. Repeat the above for all simulated datasets.
+
+Using the `rstansim` package, the above steps are all handled using the `fit_models()` function.
+
+## The fit_models() function
+
+The `fit_models()` function takes a list of datasets (stored as .RDS files; see [vignette on data simulation](https://ewan-keith.github.io/rstansim/articles/simulating_data.html)), a single stan model to fit to these datasets. It then fits the model to each dataset, recording requested/relevant data for each, and returning an S3 object of class `stansim_simulation` that holds all outcome data.
+
+## Arguments
+
+### sim_name
+
+This is the name for your simulation object. Since `fit_models()` fits a single model to multiple datasets it most likely makes sense to name your object after the model you are fitting. Why not just name your output object after the model? Because at a later stage you may wish to combine multiple single simulations into a [`stansim_collection`](stansim_collection()) object to help manage and keep results located together. At this stage the only identifier for the results of each outcome will be this provided name. If you don't set it to start with you can still rest it later using the `rename()` function.
+
+### Data for modelling
+
+There is only one argument for `fit_models()` that *must* be specified (e.g. has no default) and that is the `sim_data` argument. This should be a vector of the location names of the simulation datafiles to be modelled, or the S3 `stansim_data` object returned by a call to `simulate_data()`. If a `stansim_data` object is provided this will automatically direct the functin to the simulated data, so long as both the `fit_models()` and `simulate_data()` calls are made from the same working directory.
+
+If data was not simulated using `rstansim` then the easiest way to get these names is to store all simulated data in a single directory, the full locations of each file (relative to the working directory) can then be found by running:
+
+```{R, eval = FALSE}
+dir('directory containing data', full.names = TRUE)
+```
+
+Each dataset must be a .RDS file that, when loaded, returns a list containing the named data elements and their values. The naming of these must follow that used by the `sampling()` function in the `rstan` package. 
+
+### Stan arguments
+
+The other argument that you will likely want to specify directly is `stan_args` which takes a list containing the arguments that control the MCMC sampling carried out by Stan. In practice, four of these paramaters are likely to be of most interest:
+
+* `chains`: Controlling how many chains to run per model.
+* `iter`: Controlling the number of samples to draw from each chain.
+* `warmup`: The number of samples to mark as warmup.
+* `thin`: The thinning period used for saving samples.
+
+The names of the `stan_arg` elements must match exactly or else will not be recognised. The example below shows a correct specification:
+
+```{R, eval = FALSE}
+use_stan_args <- list("chains" = 4, "iter" = 2000, "warmup" = 1000, "thin" = 1)
+```
+
+Any other parameters used by the `rstan` `sampling()` function can also be provided, with the exceptions of `data`, `pars`, `sample_file`, and `diagnostic_file` as the first two are overruled by `fit_models()` arguments, and the last two raise the risk of write conflicts when fitting models in parallel
+
+### Other arguments
+
+With valid `sim_data` and `stan_arg` arguments the other `fit_models()` arguments all have defaults that should return reasonable results. However, you are likely to want to tweak some other arguments to match your unique case. These arguments are:
+
+* `calc_loo`: If `TRUE` then [LOO fit statistics](https://CRAN.R-project.org/package=loo) are calculated for all models and stored within the returned data.
+* `use_cores`: The number of parallel cores to use. Each model is assigned a single core, rather than each chain.
+* `parameters`: The names of the parameters you wish to store results for, defaults to all. You cannot select subsets of the parameter (e.g. must request theta rather than theta[1]).
+* `probs`: Quantiles to record for each parameter, defaults to `c(.025, .25, .5, .75, .975)`.
+* `estimates`: A selection from `c("mean", "se_mean", "sd", "n_eff", "Rhat")` which specifies which of these estimates should be stored for each parameter. By default all are stored.
+
+Other arguments exist but these a less likely to be of interest. See the documentation for `fit_models()` for more information.
+
+## Refitting specific models
+
+In some cases you might want to only refit a small number of models within a simulation (e.g. because of randomly set initial values it's possible that a small set of models failed to converge whilst most converged without issues). In this case the `refit()` function can be used to solve the problem. Calling `refit()` on a simulation result object will return an object of the same class, with the specified datasets refit, but the others unchanged. Any models refitted in this manner will overwrite the previous data and will be marked within the object as refitted.
+
+Given the computational resources required to run some simulations this function allows for minor adjustments without having to rerun the entire model fit stage. However, it should be noted that this complicates reproducability and must not be used as an alternative to well defined stan models with good convegence behaviour.
